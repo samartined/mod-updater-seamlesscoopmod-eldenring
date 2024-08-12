@@ -13,6 +13,7 @@ function Initialize-Config {
         GamePath = "C:\Program Files (x86)\Steam\steamapps\common\ELDEN RING\Game"
         ServerPassword = "YourServerPassword"
         Version = "-1"
+        AllowInvaders = 1
     }
 
     if (-Not (Test-Path $configFileName)) {
@@ -47,7 +48,7 @@ function Show-MainMenu {
 
     $form = New-Object System.Windows.Forms.Form
     $form.Text = "EldenCoop Configuration"
-    $form.Size = New-Object System.Drawing.Size(450, 240)
+    $form.Size = New-Object System.Drawing.Size(450, 300)
     $form.StartPosition = "CenterScreen"
     $form.BackColor = [System.Drawing.Color]::FromArgb(240, 248, 255)
 
@@ -91,15 +92,23 @@ function Show-MainMenu {
     $textboxServerPassword.Location = New-Object System.Drawing.Point(20, 110)
     $form.Controls.Add($textboxServerPassword)
     
+    $checkboxAllowInvaders = New-Object System.Windows.Forms.CheckBox
+    $checkboxAllowInvaders.Text = "Allow Invaders"
+    $checkboxAllowInvaders.Size = New-Object System.Drawing.Size(120, 20)
+    $checkboxAllowInvaders.Location = New-Object System.Drawing.Point(20, 140)
+    $checkboxAllowInvaders.Checked = [System.Convert]::ToBoolean($config.AllowInvaders)
+    $form.Controls.Add($checkboxAllowInvaders)
+    
     $buttonUpdate = New-Object System.Windows.Forms.Button
     $buttonUpdate.Text = "Update"
     $buttonUpdate.Size = New-Object System.Drawing.Size(75, 23)
-    $buttonUpdate.Location = New-Object System.Drawing.Point(20, 140)
+    $buttonUpdate.Location = New-Object System.Drawing.Point(20, 170)
     $buttonUpdate.BackColor = [System.Drawing.Color]::LightSkyBlue
     $buttonUpdate.ForeColor = [System.Drawing.Color]::Navy
     $buttonUpdate.Add_Click({
         $config.GamePath = $textboxGamePath.Text
         $config.ServerPassword = $textboxServerPassword.Text
+        $config.AllowInvaders = [System.Convert]::ToInt32($checkboxAllowInvaders.Checked)
         Save-Config -config $config -configFileName $configFileName
         Update-Version -config $config -configFileName $configFileName -labelVersion $labelVersion
     })
@@ -108,19 +117,20 @@ function Show-MainMenu {
     $buttonPlay = New-Object System.Windows.Forms.Button
     $buttonPlay.Text = "Play"
     $buttonPlay.Size = New-Object System.Drawing.Size(75, 23)
-    $buttonPlay.Location = New-Object System.Drawing.Point(110, 140)
+    $buttonPlay.Location = New-Object System.Drawing.Point(110, 170)
     $buttonPlay.BackColor = [System.Drawing.Color]::CornflowerBlue
     $buttonPlay.ForeColor = [System.Drawing.Color]::White
     $buttonPlay.Add_Click({
         $config.GamePath = $textboxGamePath.Text
         $config.ServerPassword = $textboxServerPassword.Text
+        $config.AllowInvaders = [System.Convert]::ToInt32($checkboxAllowInvaders.Checked)
         Save-Config -config $config -configFileName $configFileName
 
         if ($config.Version -eq "-1") {
             Update-Version -config $config -configFileName $configFileName -labelVersion $labelVersion
         }
 
-        Update-SettingsFile -filePath "$($config.GamePath)\SeamlessCoop\ersc_settings.ini" -password $config.ServerPassword
+        Update-SettingsFile -filePath "$($config.GamePath)\SeamlessCoop\ersc_settings.ini" -password $config.ServerPassword -allowInvaders $config.AllowInvaders
         Play-Game -gamePath $textboxGamePath.Text
 
         # Close the form after starting the game
@@ -131,7 +141,7 @@ function Show-MainMenu {
     $labelVersion = New-Object System.Windows.Forms.Label
     $labelVersion.Text = "Version: " + $config.Version
     $labelVersion.Size = New-Object System.Drawing.Size(400, 20)
-    $labelVersion.Location = New-Object System.Drawing.Point(20, 170)
+    $labelVersion.Location = New-Object System.Drawing.Point(20, 200)
     $labelVersion.ForeColor = [System.Drawing.Color]::Navy
     $form.Controls.Add($labelVersion)
     
@@ -161,7 +171,7 @@ function Update-Version {
         Copy-File -source "$tempExtractPath\ersc_launcher.exe" -destination "$gamePath\ersc_launcher.exe"
         Copy-Folder -source "$tempExtractPath\SeamlessCoop" -destination $seamlessCoopPath
 
-        Update-SettingsFile -filePath $settingsFilePath -password $config.ServerPassword
+        Update-SettingsFile -filePath $settingsFilePath -password $config.ServerPassword -allowInvaders $config.AllowInvaders
 
         $config.Version = $version
         Save-Config -config $config -configFileName $configFileName
@@ -252,10 +262,12 @@ function Copy-Folder {
 function Update-SettingsFile {
     param (
         [string]$filePath,
-        [string]$password
+        [string]$password,
+        [int]$allowInvaders
     )
     $settingsContent = Get-Content -Path $filePath
     $updatedContent = $settingsContent -replace '(cooppassword\s*=\s*).*', "cooppassword = $password"
+    $updatedContent = $updatedContent -replace '(allowinvaders\s*=\s*).*', "allowinvaders = $allowInvaders"
     Set-Content -Path $filePath -Value $updatedContent
 }
 
