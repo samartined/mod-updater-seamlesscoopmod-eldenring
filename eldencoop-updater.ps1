@@ -48,7 +48,7 @@ function Show-MainMenu {
 
     $form = New-Object System.Windows.Forms.Form
     $form.Text = "EldenCoop Configuration"
-    $form.Size = New-Object System.Drawing.Size(450, 300)
+    $form.Size = New-Object System.Drawing.Size(450, 240)
     $form.StartPosition = "CenterScreen"
     $form.BackColor = [System.Drawing.Color]::FromArgb(240, 248, 255)
 
@@ -267,7 +267,7 @@ function Update-SettingsFile {
     )
     $settingsContent = Get-Content -Path $filePath
     $updatedContent = $settingsContent -replace '(cooppassword\s*=\s*).*', "cooppassword = $password"
-    $updatedContent = $updatedContent -replace '(allowinvaders\s*=\s*).*', "allowinvaders = $allowInvaders"
+    $updatedContent = $updatedContent -replace '(allow_invaders\s*=\s*).*', "allow_invaders = $allowInvaders"
     Set-Content -Path $filePath -Value $updatedContent
 }
 
