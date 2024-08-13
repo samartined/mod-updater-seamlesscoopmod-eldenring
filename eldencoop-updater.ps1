@@ -140,8 +140,8 @@ function Show-MainMenu {
 
     $labelVersion = New-Object System.Windows.Forms.Label
     $labelVersion.Text = "Version: " + $config.Version
-    $labelVersion.Size = New-Object System.Drawing.Size(400, 20)
-    $labelVersion.Location = New-Object System.Drawing.Point(20, 200)
+    $labelVersion.Size = New-Object System.Drawing.Size(200, 23)
+    $labelVersion.Location = New-Object System.Drawing.Point(210, 170)
     $labelVersion.ForeColor = [System.Drawing.Color]::Navy
     $form.Controls.Add($labelVersion)
     
